@@ -204,10 +204,10 @@ int main()
 
     glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
 
-    Camera* mainCamera = new Camera(3,3,3,0,0,0,glm::vec3(0,1,0));
+    Camera* mainCamera = new Camera(4,3,3,0,0,0,glm::vec3(0,1,0));
    
     glm::mat4 Model = glm::mat4(1.f);
-    Model = glm::rotate(Model, glm::radians(70.0f), glm::vec3(0, 1, 0));
+    //Model = glm::rotate(Model, glm::radians(70.0f), glm::vec3(0, 1, 0));
     // Итоговая матрица ModelViewProjection, которая является результатом перемножения наших трех матриц
     glm::mat4 MVP;
     MVP = Projection * mainCamera->getCameraMatrix() * Model;
@@ -227,11 +227,15 @@ int main()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     
-
+    float Y_PROJECTION_ANGLE = 0.541; //start angle in y projection 31 deg.
+    float BETA_ANGLE = 0.628;
+    float START_RADIUS = 5.8;
     do {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //START_RADIUS = mainCamera->x / cos(BETA_ANGLE) / sin(Y_PROJECTION_ANGLE);
 
-    MVP = Projection * mainCamera->getCameraMatrix() * Model;
+
+        MVP = Projection * mainCamera->getCameraMatrix() * Model;
 
         GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
@@ -292,30 +296,101 @@ int main()
         }
         if (glfwGetKey(window, GLFW_KEY_RIGHT)) {
             std::cout << "Na berlin "<< std::endl;
-            alpha += .05;
+            /*BETA_ANGLE =
+            float xzRadius = mainCamera->x / cos(BETA_ANGLE);*/
+            BETA_ANGLE += 0.05;
+            mainCamera->toZ = xzRadius * sin(BETA_ANGLE);
+            mainCamera->toX = xzRadius * cos(BETA_ANGLE);
+
+
+            //alpha += .05;
         }
         if  (glfwGetKey(window, GLFW_KEY_LEFT)) {
-            std::cout << "Na berlin " << std::endl;
-            alpha -= 0.05;
+            //std::cout << "Na berlin " << std::endl;
+            //alpha -= 0.05;
+            std::cout << "X " << mainCamera->x << std::endl;
+            std::cout << "Z " << mainCamera->z << std::endl;
+            std::cout << "Y " << mainCamera->y << std::endl;
+
+            std::cout << "TO_X "<<mainCamera->toX << std::endl;
+            std::cout << "TO_Z " << mainCamera->toZ << std::endl;
+            std::cout << "TO_Y " << mainCamera->toY << std::endl;
+
+
+            float xzRadius = mainCamera->x / cos(BETA_ANGLE);
+            BETA_ANGLE -= 0.05;
+            mainCamera->toZ = xzRadius * sin(BETA_ANGLE) + mainCamera->z;
+            mainCamera->toX = xzRadius * cos(BETA_ANGLE) + mainCamera->x;
         }
         if (glfwGetKey(window, GLFW_KEY_UP)) {
-            alpha2 += .05;
-            mainCamera->toY += 0.05;
+            /*alpha2 += .05;
+            mainCamera->toY += 0.05;*/
             //scaleNumber += .01;
+
+            Y_PROJECTION_ANGLE -= 0.025;
+            if (Y_PROJECTION_ANGLE > 3.14){
+                Y_PROJECTION_ANGLE = 3.14;
+            }
+            if (Y_PROJECTION_ANGLE < 0) {
+                Y_PROJECTION_ANGLE = 0;
+            }
+            mainCamera->toY = START_RADIUS * cos(Y_PROJECTION_ANGLE);
+            mainCamera->toX = 4 - (START_RADIUS * cos(Y_PROJECTION_ANGLE) * cos(BETA_ANGLE));
+            mainCamera->toZ = 3 - (START_RADIUS * cos(Y_PROJECTION_ANGLE) * sin(BETA_ANGLE));
+
         }
         if (glfwGetKey(window, GLFW_KEY_DOWN)) {
             //scaleNumber -= .01;
-            alpha2 -= .05;
-            mainCamera->toY -= 0.05;
+           /* alpha2 -= .05;
+            mainCamera->toY -= 0.05;*/
+            Y_PROJECTION_ANGLE += 0.025;
+
+            if (Y_PROJECTION_ANGLE > 3.14) {
+                Y_PROJECTION_ANGLE = 3.14;
+            }
+            if (Y_PROJECTION_ANGLE < 0) {
+                Y_PROJECTION_ANGLE = 0;
+            }
+            mainCamera->toY = START_RADIUS * cos(Y_PROJECTION_ANGLE);
+            mainCamera->toX = 4 - (START_RADIUS * cos(Y_PROJECTION_ANGLE) * cos(BETA_ANGLE));
+            mainCamera->toZ = 3 - (START_RADIUS * cos(Y_PROJECTION_ANGLE) * sin(BETA_ANGLE));
 
 
         }
         if (glfwGetKey(window, GLFW_KEY_W)) {
-            mainCamera->x += 0.1;
+            START_RADIUS = START_RADIUS - 0.05;
+            if (START_RADIUS < 0) {
+                START_RADIUS = 0;
+            }
+            mainCamera->z = START_RADIUS / sin(BETA_ANGLE);
+            mainCamera->x = START_RADIUS / cos(BETA_ANGLE);
+            mainCamera->y = START_RADIUS * cos(Y_PROJECTION_ANGLE);
+
+            std::cout << "RADIUS == " <<  START_RADIUS << "   X == " << mainCamera->x << std::endl;
+
+            std::cout << "Z == " << mainCamera->z << "   X == " << mainCamera->x << std::endl;
+
         }
-        mainCamera->toX = cos(alpha) * radius + 3.;
-        //mainCamera->toY = sin(alpha) * radius;
-        mainCamera->toZ = sin(alpha) * radius + 3.;
+        if (glfwGetKey(window, GLFW_KEY_S)) {
+                START_RADIUS = START_RADIUS + 0.05;
+                
+                mainCamera->z = START_RADIUS / sin(BETA_ANGLE);
+                mainCamera->x = START_RADIUS / cos(BETA_ANGLE);
+                mainCamera->y = START_RADIUS * cos(Y_PROJECTION_ANGLE);
+
+                std::cout << "RADIUS == " << START_RADIUS << "   X == " << mainCamera->x << std::endl;
+
+                std::cout << "X " << mainCamera->x << std::endl;
+                std::cout << "Z " << mainCamera->z << std::endl;
+                std::cout << "Y " << mainCamera->y << std::endl;
+
+                std::cout << "TO_X " << mainCamera->toX << std::endl;
+                std::cout << "TO_Z " << mainCamera->toZ << std::endl;
+                std::cout << "TO_Y " << mainCamera->toY << std::endl;
+        }
+        //mainCamera->toX = cos(alpha) * radius + 3.;
+        ////mainCamera->toY = sin(alpha) * radius;
+        //mainCamera->toZ = sin(alpha) * radius + 3.;
 
         /*mainCamera->toY = cos(alpha2) * radius + 3.;
         mainCamera->toZ = sin(alpha2) * radius + 3.;*/
